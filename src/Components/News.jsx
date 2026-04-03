@@ -40,10 +40,23 @@ const News = ({ onShowBlogs, blogs, onEditBlog, onDeleteBlog }) => {
 
   useEffect(() => {
     const fetchNews = async () => {
-      let url = `https://gnews.io/api/v4/top-headlines?category=${selectedCategory}&lang=en&apikey=ee999a723915a34fc8c9525336e8a5b6`
+      const apiKey = import.meta.env.VITE_GNEWS_API_KEY
+      let url
 
-      if (searchQuery) {
-        url = `https://gnews.io/api/v4/search?q=${searchQuery}&lang=en&apikey=ee999a723915a34fc8c9525336e8a5b6`
+      // In development: use Vite proxy to gnews.io
+      // In production: use Vercel serverless function
+      if (import.meta.env.DEV) {
+        if (searchQuery) {
+          url = `/api/search?q=${searchQuery}&lang=en&apikey=${apiKey}`
+        } else {
+          url = `/api/top-headlines?category=${selectedCategory}&lang=en&apikey=${apiKey}`
+        }
+      } else {
+        if (searchQuery) {
+          url = `/api/news?endpoint=search&q=${encodeURIComponent(searchQuery)}&lang=en`
+        } else {
+          url = `/api/news?endpoint=top-headlines&category=${selectedCategory}&lang=en`
+        }
       }
 
       const response = await axios.get(url)
